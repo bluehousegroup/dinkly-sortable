@@ -9,7 +9,9 @@
             "email": "joe@bluehousegroup.com"
         }
     ],
-    "require": {},
+    "require": {
+        "php": ">=7"
+    },
     "autoload": {
         "psr-4": {
             "BluehouseGroup\\DinklySortable\\": "src/"

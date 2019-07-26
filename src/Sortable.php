@@ -2,12 +2,14 @@
 
 namespace BluehouseGroup\DinklySortable;
 
+use \Exception;
+
 trait Sortable
 {
     public function reorder(int $position)
     {
         if ($this->isNew()) {
-            throw new Exception('You cannot reorder an unsaved record.');
+            throw new Exception('An unsaved record cannot be reordered.');
         }
 
         $sort_column = $this->getSortableColumn();
