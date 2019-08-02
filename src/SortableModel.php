@@ -9,4 +9,6 @@ interface SortableModel
     public function getSortableFilters();
 
     public function getSortableColumn();
+
+    public function getSortableFallbackColumn();
 }
