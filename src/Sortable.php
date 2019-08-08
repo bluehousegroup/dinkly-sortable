@@ -27,21 +27,7 @@ trait Sortable
 
         $table = $this->getDBTable();
 
-        $conditions = [];
-        $conditional_params = [];
-        foreach ($this->getSortableFilters() as $column => $value) {
-            $condition = "`$column` = ?";
-            if ($value === false) {
-                $condition = "($condition OR `$column` IS NULL)";
-            }
-            $conditions[] = $condition;
-            $conditional_params[] = $value;
-        }
-
-        $where = '';
-        if (!empty($conditions)) {
-            $where = ' WHERE ' . implode(' AND ', $conditions);
-        }
+        list($where, $conditional_params) = $this->buildWhereClause();
 
         $mysql_variable = '@' . $table . '_' . $sort_column;
 
@@ -120,6 +106,27 @@ trait Sortable
         return $this;
     }
 
+    public function getMaxSortableColumnValue()
+    {
+        $sort_column = $this->getSortableColumn();
+        $property = $this->getRegistryValue($sort_column);
+        if (!$property) {
+            throw new Exception('Sort Column `' . $sort_column . '` does not exist on the following Model: ' . static::class . '.');
+        }
+
+        $table = $this->getDBTable();
+
+        list($where, $conditional_params) = $this->buildWhereClause();
+
+        $query = "SELECT MAX(`$sort_column`) FROM `$table`" . $where;
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($conditional_params);
+        $results = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+        return $results[0] ?? 0;
+    }
+
     public function getSortableFilters()
     {
         return [];
@@ -143,5 +150,26 @@ trait Sortable
         }
 
         return 'id';
+    }
+
+    private function buildWhereClause()
+    {
+        $conditions = [];
+        $conditional_params = [];
+        foreach ($this->getSortableFilters() as $column => $value) {
+            $condition = "`$column` = ?";
+            if ($value === false) {
+                $condition = "($condition OR `$column` IS NULL)";
+            }
+            $conditions[] = $condition;
+            $conditional_params[] = $value;
+        }
+
+        $where = '';
+        if (!empty($conditions)) {
+            $where = ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        return [$where, $conditional_params];
     }
 }
